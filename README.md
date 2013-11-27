@@ -1,4 +1,4 @@
-sketch
+Sketch
 ======
 
 Sketch is a white canvas page. You can draw something and download it.
