@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Sketch by Jordi Tost</title>
+    <meta name="description" content="Sketch is a white canvas page. Draw something and download it!" />
+
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <div id="container"></div>
+
+    <div id="message">Draw something! :-)</div>
+    
+    <a href="#" id="download">Click here to download your drawing!</a>
+    <img id="image" />
+    
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script>window.jQuery || document.write("<script src='js/jquery-1.10.2.min.js'>\x3C/script>")</script>
+
+    <script src="js/sketch.min.js"></script>
+
+    <script>
+        var $container,
+            $message,
+            $download;
+
+        // Reset page
+        function resetPage() {
+            $download.removeClass('show');
+
+            // Show message
+            $message.css({display: 'block'});
+            setTimeout(function(){
+                $message.removeClass('hide')
+                        .one('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', function() {
+                            initMessageText();
+                        });
+            },0);
+
+            // Clear
+            context.clear();
+        }
+
+        // Intro Message text
+        function initMessageText() {
+            $container.one('mousedown', function() {
+                $message.addClass('hide')
+                        .one('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend', function() {
+                            $message.css('display', 'none');
+                            $download.addClass('show');
+                        });
+            })
+        }
+
+        // Downloads
+        function downloadCanvas(link, canvasId, filename) {
+            console.log("download - " + canvasId + ", filename: " + filename);
+            link.href = document.getElementById(canvasId).toDataURL();
+            link.download = filename;
+        }
+
+        function initDownloadLink() {
+
+            // Download link
+            $download.click(function() {
+                var now = new Date();
+                downloadCanvas(this, 'canvas', 'Sketch ' + now.toLocaleString() + '.png');
+                resetPage();
+                // Don't e.preventDefault() or return false to allow downlaod
+            });
+        }
+
+        // jQuery Functions
+        $(document).ready(function() {
+
+            $container = $('#container');
+            $message   = $('#message');
+            $download  = $('#download');
+            $('canvas').attr("id", "canvas");
+
+            // Hide message
+            initMessageText();
+
+            // Init Download
+            initDownloadLink();
+        });
+    </script>
+
+    <script>
+        // Drawing Functions
+        var color = '#000000';
+        var radius = 0;
+        var magnitude = 0;
+        var vx, vy = 0;
+        //var ax, ay = -0.001;
+        
+        var easing = 0.05;
+        var draw = false;
+
+        // Decelerate params
+        var endX, endY, x, y, ox, oy;
+        var endRadius = 0;
+        //var decelerate = false;
+
+
+        var context = Sketch.create({
+            container: document.getElementById('container'),
+            autoclear: false,
+
+            setup: function() {
+
+            },
+            /*update: function() {
+                
+                touch = this.touches[0];
+
+                if (decelerate) {
+
+                    // Decrease radius
+                    var targetRadius = 1;
+                    var dRadius = targetRadius - radius;
+                    if(abs(dRadius) > 1) {
+                        radius += dRadius * easing;
+                    }
+                    if (radius > endRadius) radius = endRadius;
+
+                    this.lineCap = 'round';
+                    this.lineJoin = 'round';
+                    this.fillStyle = this.strokeStyle = '#000000';
+                    this.lineWidth = radius;
+
+                    var targetX = endX + vx;
+                    var dx = targetX - x;
+                    if(abs(dx) > 1) {
+                        x += dx * easing;
+                    }
+
+                    var targetY = endY + vy;
+                    var dy = targetY - y;
+                    if(abs(dy) > 1) {
+                        y += dy * easing;
+                    }
+
+                    this.beginPath();
+                    this.moveTo( ox, oy );
+                    this.lineTo( x, y );
+                    this.stroke();
+
+                    ox = x;
+                    oy = y;
+
+                    // Stop decelerate
+                    if (abs(x - targetX) < 2 && abs(y - targetY) < 2) {
+                        decelerate = false;
+                    }
+                }
+            },*/
+
+            // Event handlers
+            mousedown: function() {
+                draw = true;
+                radius = 1;
+                //decelerate = false;
+            },
+            mouseup: function() {
+
+                if (!draw) return;
+
+                touch = this.touches[0];
+
+                ox = touch.x;
+                oy = touch.y;
+
+                x = endX = touch.x;// + vx;
+                y = endY = touch.y;// + vy;
+
+                vx *= 2;
+                vy *= 2;
+
+                endRadius = radius;
+
+                //decelerate = true;
+                draw = false;
+            },
+            keydown: function() {
+                if ( this.keys.C ) this.clear();
+            },
+            touchmove: function() {
+
+                if (!draw) return;
+                    
+                touch = this.touches[0];
+
+                // Calculate line thickness with vector magnitude
+                // Faster mouse moves generate thiner lines
+
+                vx = touch.x - touch.ox;
+                vy = touch.y - touch.oy
+                magnitude = sqrt(pow(vx, 2) + pow(vy, 2));
+
+                var targetRadius = map(magnitude, 15, 1, 5, 20);
+                var dRadius = targetRadius - radius;
+                if(abs(dRadius) > 1) {
+                    radius += dRadius * easing;
+                }
+
+                if (radius < 2) radius = 2;
+
+                this.lineCap = 'round';
+                this.lineJoin = 'round';
+                this.fillStyle = this.strokeStyle = color;
+                this.lineWidth = radius;
+
+                this.beginPath();
+                this.moveTo( touch.ox, touch.oy );
+                this.lineTo( touch.x, touch.y );
+                this.stroke();
+            }
+        });
+    </script>
+
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-46037077-2', 'jorditost.com');
+        ga('send', 'pageview');
+    </script>
+</body>
+</html>

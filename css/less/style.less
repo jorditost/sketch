@@ -1,0 +1,110 @@
+/*   
+jorditost.com
+Author: Jordi Tost
+Author URI: https://github.com/jorditost/
+Version: 1.0
+*/
+
+// Main Framework 
+@import "reset";
+@import "common-vars";
+@import "common";
+
+// Theme specific
+@import "vars";
+@import "mixins";
+
+/* Ok, this is where the fun starts.
+---------------------------------------*/
+
+body {
+	font: 16px @font-reg;
+	line-height: 1.4;
+	color: @black;
+}
+
+html, body {
+    -webkit-text-size-adjust: 100% !important; /* Prevent font scaling in landscape */
+}
+
+// Webkit smoothing
+// http://www.icondeposit.com/blog:how-to-properly-smooth-font-using-css3
+//html, html a {
+* {
+	-webkit-font-smoothing: antialiased !important; 
+}
+
+
+/////////////
+// Headers
+/////////////
+
+h1, h2, h3, h4, h5, h6 {
+	// font-weight: 100;
+	.optimize-text();
+}
+
+
+/////////////////
+// LANDINGPAGE
+/////////////////
+
+#container {
+	cursor: pointer;
+}
+
+#message {
+	@width: 300px;
+	position: absolute;
+	width: @width;
+	left: 50%;
+	margin-left: -@width/2;
+
+	top: 50%;
+	margin-top: -30px;
+	
+	font-size: 24px;
+	text-align: center;
+
+	.opacity(100);
+
+	.transition(opacity, 0.2s);
+
+	&.hide {
+		.opacity(0);
+	}
+}
+
+#image {
+	display: none;
+}
+
+#download {
+	position: absolute;
+	bottom: 25px;
+	right: 25px;
+	color: #000;
+
+	.opacity(0);
+	.transition(all, 0.2s);
+
+	&.show {
+		.opacity(100);
+	}
+
+	&:hover {
+		color: #444;
+	}
+}
+
+///////////////////
+// Sticky Footer
+///////////////////
+
+//.sticky-footer(@footer-height);
+
+///////////////////
+// Media Queries
+///////////////////
+
+//@import "media-queries";
